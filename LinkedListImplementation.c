@@ -44,6 +44,7 @@ void freeList(Node* tail) {
     }
 }
 void printList(Node* tail) {
+    printf("LIST!\n");
     Node* temp;
     tail= tail->next;
     while (tail != NULL && tail->contentPointer != 0) {
@@ -53,15 +54,6 @@ void printList(Node* tail) {
         tail = temp;
     }
 }
-/*void printList(Node* head) {
-    Node* temp;
-    while (head != NULL) {
-        temp = head->prev;
-        printf("%s\n", (const char*)head->contentPointer);
-        fflush(stdout);
-        head = temp;
-    }
-}*/
 Node* getNode(Node* tail, int index) {
     Node* temp;
     tail= tail->next;
@@ -76,7 +68,7 @@ Node* getNode(Node* tail, int index) {
     return NULL;
 }
 
-int main () {
+/*int main () {
     Node* tail = createList();
     printList(tail);
     Node* head = tail;
@@ -87,10 +79,8 @@ int main () {
         head = addNode(head, strdup(buffer));
     }
     printList(tail);
-
-
     //get the pointer to the 44th node
     Node* getted = getNode(tail, 44);
     printf("Getted from index 44\nIndex: %d\tContentString: %s\n", getted->index,(const char*)getted->contentPointer);
     freeList(tail);
-}
+}*/
