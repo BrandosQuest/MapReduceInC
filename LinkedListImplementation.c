@@ -62,6 +62,16 @@ void printList(Node* tail) {
         tail = temp;
     }
 }
+void printListFromHead(Node* head) {
+    printf("LIST!\n");
+    Node* temp;
+    while (head != NULL && head->contentPointer != 0) {
+        temp = head->prev;
+        printf("Index: %d\tContentInt: %d\n", head->index, *(int *)head->contentPointer);
+        fflush(stdout);
+        head = temp;
+    }
+}
 void printListTrad(Node* tail) {
     printf("LIST!\n");
     Node* temp;

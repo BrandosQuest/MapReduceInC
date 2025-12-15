@@ -10,7 +10,7 @@ struct KeyVal {
 #include <wctype.h>
 //#include "ReadFileReturnArrayOfWords.c"
 
-#define NUM_THREADS 3
+#define NUM_THREADS 1
 
 // 2. The "Envelope" struct to pass arguments to threads
 typedef struct {
@@ -22,11 +22,97 @@ typedef struct {
     Node* combineOutputListTail;    // The Result: Map phase output
 } ThreadArgs;
 
-void shuffle() {
-
+int areTheKeysEqual(KeyVal* k1, KeyVal* k2) {
+    if (k2==NULL) return 0;
+    printf("string 1: %s\tstring 2: %s\t", (const char*)k1->key, (const char*)k2->key);
+    printf("string 1p: %p\tstring 2p: %p\n", (const char*)k1->key, (const char*)k2->key);
+    fflush(stdout);
+    return strcmp((const char*)k1->key, (const char*)k2->key);
 }
-void combine() {
 
+//a shuffle func that takes the key value list and for each key that is equal it creates an array or list of the values
+Node* shuffle(Node* inputTail) {
+    Node* outputTailTemp = createList();
+    Node* outputTail = outputTailTemp;
+    Node* outputHead = outputTailTemp;
+
+
+    Node* temp;
+    inputTail= inputTail->next;
+    while (inputTail != NULL) {
+        temp = inputTail->next;
+
+
+        //do stuff
+        int founded=0;
+        outputTailTemp=outputTail;
+        Node* temp2;
+        while (outputTailTemp != NULL) {
+            temp2 = outputTailTemp->next;
+            //do stuff
+            if (areTheKeysEqual(inputTail->contentPointer, outputTailTemp->contentPointer))
+            {
+                //do stuff
+                //add to the outputlist the value from the imput list
+                ((KeyVal*)outputTailTemp->contentPointer)->val = addNode(
+                    ((KeyVal*)outputTailTemp->contentPointer)->val, ((KeyVal*)inputTail->contentPointer)->val);
+                founded=1;
+                break;
+            }
+            printf("outputTailTemp pointer: %p\n", outputTailTemp);
+            //if the keys are equal than add the value to the valueList on the specific outputlist value
+            //else if there is no match create a new node on the outputlist with the same key and a list on the value containing the specific value
+            outputTailTemp = temp2;
+        }
+        if (!founded)
+        {
+            KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));
+            kv->key = ((KeyVal*)inputTail->contentPointer)->key;
+            Node* valueListTail = createList();
+            Node* valueListHead = valueListTail;
+            valueListHead=addNode(valueListHead, ((KeyVal*)inputTail->contentPointer)->val);
+            kv->val = valueListHead;
+            printf("outputList content pointer: %p\n", kv);
+            outputHead = addNode(outputHead, kv);
+            //remember to find a way to free this from the head
+        }
+
+
+        inputTail = temp;
+    }
+
+
+    Node* temp3;
+    outputTailTemp = outputTail;
+    outputTailTemp= outputTailTemp->next;
+    while (outputTailTemp != NULL && outputTailTemp->contentPointer != 0) {
+        temp3 = outputTailTemp->next;
+        printListFromHead(((KeyVal*)outputTailTemp->contentPointer)->val);
+        outputTailTemp = temp3;
+    }
+
+    return outputTail;
+}
+
+Node* combine(Node* inputTail) {
+    Node* outputTail = createList();
+    Node* outputHead = outputTail;
+
+    Node* temp;
+    inputTail= inputTail->next;
+    while (inputTail != NULL) {
+        temp = inputTail->next;
+        //to do stuff
+        int numberOfWordFound=((Node*)((KeyVal*)inputTail->contentPointer)->val)->index+1;
+
+        KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));
+        kv->key = ((KeyVal*)inputTail->contentPointer)->key;
+        kv->val = &numberOfWordFound;
+        outputHead=addNode(outputHead, kv);
+
+        inputTail = temp;
+    }
+    return outputTail;
 }
 
 // 3. The Thread Function (The "Map" Phase)
@@ -35,8 +121,8 @@ void* threadFunc(void* arguments) {
     ThreadArgs* args = (ThreadArgs*) arguments;
     printf("In thread: Thread number %d is working!\n", args->thread_id);
 
-    Node* combineOutputListTail = createList();
-    Node* combineOutputListHead = combineOutputListTail;
+    Node* mapOutputListTail = createList();
+    Node* mapOutputListHead = mapOutputListTail;
     int encounteredOnce=1;
 
     for (int i = 0; i < args->numNodesToEvaluate; i++)
@@ -46,10 +132,16 @@ void* threadFunc(void* arguments) {
         args->startNode=getNextNode(args->startNode);
         kv->val=&encounteredOnce;
         //printf("the pointer to the value is %p\n", kv->val);
-        combineOutputListHead = addNode(combineOutputListHead, kv);
+        mapOutputListHead = addNode(mapOutputListHead, kv);
     }
-    //printList(combineOutputListTail);
-    args->combineOutputListTail=combineOutputListTail;
+
+    args->combineOutputListTail=combine(shuffle(mapOutputListTail));
+    printList(mapOutputListTail);
+    printf("mapOutputListTail \t%p\n", mapOutputListTail);
+    printf("args->combineOutputListTail \t%p\n", args->combineOutputListTail);
+    printList(args->combineOutputListTail);
+
+    //still have to free a lot of lists
 }
 
 int main() {
@@ -73,7 +165,7 @@ int main() {
         //printf("%s\n", buf);
         //fflush(stdout);
     }
-    printListTrad(tail);
+    //printListTrad(tail);
 
     // --- STEP 1: PREPARE THREADS ---
     pthread_t threads[NUM_THREADS];
