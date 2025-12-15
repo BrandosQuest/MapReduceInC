@@ -1,0 +1,19 @@
+Ok, map reduce architecture
+if i have words in a file on a distributed sistem of nodes and i want to count the fequency
+in witch each word appears i can implement the map reduce architecture.
+
+-First i split the file to the nodes
+-than i write the map function that from the words outputs a tuple consisting of the key value pair: <word, 1>
+-than on the same node the shuffle function makes the outputs into this kind of value: <word, [1, 1, 1, 1, 1...]>
+    so it groups the key - value pairs by key making an array of values.
+-Than there is the combine function that sums up the array of values and gives out an <word, #ofTimesFound>
+-Than there is the shuffle again, on the main node, groups the outputs of the combine from the different nodes into <word, [#, #, #...]>
+-than there is the reduce func on the main node that takes the array of #ofTimesFound from the shuffle and gives out their sum
+    in this stile <word, sumOf#>
+-so the final output is a list of keyValue that represents the word and how many times it is found.
+
+I need to implement:
+-KeyValue struct
+-a list of KeyValue so that i can iterate them
+-a shuffle func that takes the key value list and for each key that is equal it creates an array or list of the values
+-

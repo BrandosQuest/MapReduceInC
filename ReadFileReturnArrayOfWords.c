@@ -4,25 +4,9 @@
 #include <wctype.h>
 
 
-/*int main() {
-    FILE *f = fopen("input.txt", "r");
+int main() {
 
-    char buf[1024];
-
-    while( fscanf(f, "%s", buf) != EOF )
-    {
-        for (int i=0; buf[i] != 0; i++)
-        {
-            if (!iswalpha(buf[ i ]) && !iswdigit(buf[ i ]))
-            {
-                buf[i] = 0;
-            }
-        }
-
-        printf("%s\n", &buf);
-    }
-
-    /*int wc;
+    int wc;
 
     for (wc=0; wc <= 0xFF; wc++)
     {
@@ -43,5 +27,5 @@
         printf("%2s", iswxdigit(wc) ? "X"  : " ");
 
         putchar('\n');
-    }#1#
-}*/
+    }
+}
