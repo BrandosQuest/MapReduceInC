@@ -1,5 +1,10 @@
 #include <ctype.h>
 #include <stdio.h>
+typedef struct KeyVal KeyVal;
+struct KeyVal {
+    void* key;
+    void* val;
+};
 #include "LinkedListImplementation.c"
 #include <wctype.h>
 
@@ -28,4 +33,16 @@ int main() {
 
         putchar('\n');
     }
+
+    /*Node* tail = createList();
+    Node* head = tail;
+    char [] arr
+
+    for (int i = 0; i < 5; i++)
+    {
+        int* p = calloc(1, sizeof(int));
+        head = addNode(head, p);
+    }
+    printListTrad(tail);
+    freeList(tail);*/
 }

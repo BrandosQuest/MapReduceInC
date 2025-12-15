@@ -35,6 +35,13 @@ Node* addNode(Node* head, void* contentPointer) {
     nodeJustCreated->prev = head;
     return nodeJustCreated;
 }
+Node* getNextNode(Node* node) {
+    if (node->next == NULL)
+    {
+        return NULL;
+    }
+    return node->next;
+}
 void freeList(Node* tail) {
     Node* temp;
     while (tail != NULL) {
@@ -44,6 +51,18 @@ void freeList(Node* tail) {
     }
 }
 void printList(Node* tail) {
+    printf("LIST!\n");
+    Node* temp;
+    tail= tail->next;
+    while (tail != NULL && tail->contentPointer != 0) {
+        temp = tail->next;
+        printf("Index: %d\tContentKeyString: %s\t", tail->index,(const char*)((KeyVal *)tail->contentPointer)->key);
+        printf("ContentValueInt: %d\tContentPointer: %p\n", *(int*)((KeyVal *)tail->contentPointer)->val, tail->contentPointer);
+        fflush(stdout);
+        tail = temp;
+    }
+}
+void printListTrad(Node* tail) {
     printf("LIST!\n");
     Node* temp;
     tail= tail->next;
