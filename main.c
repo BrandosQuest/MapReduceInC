@@ -351,8 +351,8 @@ int main() {
         //freeList(args[i].combineOutputListTail);
         //printf("In main: list from thread %d freed\n", i);
     }
-    printList(nodesOutputTail);
-    printListFromHead(nodesOutputHead);
+    //printList(nodesOutputTail);
+    //printListFromHead(nodesOutputHead);
 
     printf("In main: final result\n");
 
