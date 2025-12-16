@@ -29,6 +29,9 @@ Node* addNode(Node* head, void* contentPointer) {
     if (nodeJustCreated == NULL) {
         return NULL; // Allocation failed
     }
+    if (head == NULL) {
+        return NULL; // Allocation failed
+    }
     nodeJustCreated->contentPointer = contentPointer;
     nodeJustCreated->index = head->index+1;
     head->next = nodeJustCreated;
@@ -46,6 +49,7 @@ void freeList(Node* tail) {
     Node* temp;
     while (tail != NULL) {
         temp = tail->next;
+        free(tail->contentPointer);
         free(tail);
         tail = temp;
     }
