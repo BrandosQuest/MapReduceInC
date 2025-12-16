@@ -24,13 +24,13 @@ typedef struct {
 //case sensitive
 int areTheKeysEqual(KeyVal* k1, KeyVal* k2) {
     if (k2==NULL) return 0;
-    printf("string 1: %s\tstring 2: %s\t", (const char*)k1->key, (const char*)k2->key);
-    printf("string 1p: %p\tstring 2p: %p\n", (const char*)k1->key, (const char*)k2->key);
+    //printf("string 1: %s\tstring 2: %s\t", (const char*)k1->key, (const char*)k2->key);
+    //printf("string 1p: %p\tstring 2p: %p\n", (const char*)k1->key, (const char*)k2->key);
     fflush(stdout);
 
     int result=0;
     result=!strcmp((const char*)k1->key, (const char*)k2->key);
-    printf("Result: %d\n", result);
+    //printf("Result: %d\n", result);
     fflush(stdout);
     return result;
 }
@@ -143,7 +143,7 @@ Node* shuffle(Node* inputTail) {
             }
             outputHead=addNode(outputHead, kv);
             if (outputHead == NULL) free(kv);
-            printf("Match not founded for %s\t created list of values\n", (const char*)((KeyVal*)inputTail->contentPointer)->key);
+            //printf("Match not founded for %s\t created list of values\n", (const char*)((KeyVal*)inputTail->contentPointer)->key);
             //remember to find a way to free this from the head
         }
 
@@ -153,7 +153,7 @@ Node* shuffle(Node* inputTail) {
 
 
 
-    Node* temp3;
+    /*Node* temp3;
     outputTail = outputTailRef;
     outputTail= outputTail->next;
     while (outputTail != NULL && outputTail->contentPointer != 0) {
@@ -161,7 +161,7 @@ Node* shuffle(Node* inputTail) {
         printf("List of values\n");
         printListFromHead(((KeyVal*)outputTail->contentPointer)->val);
         outputTail = temp3;
-    }
+    }*/
 
     return outputTailRef;
 }
@@ -175,15 +175,24 @@ Node* combine(Node* inputTail) {
     while (inputTail != NULL) {
         temp = inputTail->next;
         //to do stuff
-        int numberOfWordFound=((Node*)((KeyVal*)inputTail->contentPointer)->val)->index+1;
-
+        int* numberOfWordFound=malloc(sizeof(int));
+        if (numberOfWordFound!=NULL) *numberOfWordFound=((Node*)((KeyVal*)inputTail->contentPointer)->val)->index+1;
+        //printf("Number of words found: %d\n", *numberOfWordFound);
         KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));
-        kv->key = ((KeyVal*)inputTail->contentPointer)->key;
-        kv->val = &numberOfWordFound;
+        if (kv!=NULL){
+            kv->key = ((KeyVal*)inputTail->contentPointer)->key;
+            kv->val = numberOfWordFound;
+        }
         outputHead=addNode(outputHead, kv);
+        if (outputHead == NULL)
+        {
+            free(numberOfWordFound);
+            free(kv);
+        }
 
         inputTail = temp;
     }
+    //freeList(inputTail);
     return outputTail;
 }
 
@@ -208,12 +217,55 @@ void* threadFunc(void* arguments) {
     }
 
     args->combineOutputListTail=combine(shuffle(mapOutputListTail));
-    printList(mapOutputListTail);
+    /*printList(mapOutputListTail);
     printf("mapOutputListTail \t%p\n", mapOutputListTail);
-    printf("args->combineOutputListTail \t%p\n", args->combineOutputListTail);
-    printList(args->combineOutputListTail);
+    printf("args->combineOutputListTail \t%p\n", args->combineOutputListTail);*/
+    //printf("combineOutputListTail thread: %d\n", args->thread_id);
+    //printList(args->combineOutputListTail);
 
     //still have to free a lot of lists
+}
+int sumContentOfListOfInt(Node* inputHead) {
+    int sum=0;
+    Node* temp;
+    while (inputHead != NULL && inputHead->contentPointer != 0) {
+        temp = inputHead->prev;
+        //do stuff
+        sum = sum + *(int*)inputHead->contentPointer;
+        inputHead = temp;
+    }
+    return sum;
+}
+
+Node* reduce(Node* inputTail) {
+    Node* outputTail = createList();
+    Node* outputHead = outputTail;
+
+    Node* temp;
+    inputTail= inputTail->next;
+    while (inputTail != NULL) {
+        temp = inputTail->next;
+        //to do stuff
+        int* numberOfWordFound=malloc(sizeof(int));
+        if (numberOfWordFound != NULL) *numberOfWordFound = sumContentOfListOfInt(
+            (Node*)((KeyVal*)inputTail->contentPointer)->val);
+        //printf("Number of words found: %d\n", *numberOfWordFound);
+        KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));
+        if (kv!=NULL){
+            kv->key = ((KeyVal*)inputTail->contentPointer)->key;
+            kv->val = numberOfWordFound;
+        }
+        outputHead=addNode(outputHead, kv);
+        if (outputHead == NULL)
+        {
+            free(numberOfWordFound);
+            free(kv);
+        }
+
+        inputTail = temp;
+    }
+    //freeList(inputTail);
+    return outputTail;
 }
 
 int main() {
@@ -285,15 +337,29 @@ int main() {
     }
     printf("In main: All threads are created.\n");
     // --- STEP 3: REDUCE PHASE (Join and Aggregate) ---
+    Node* nodesOutputTail = createList();
+    Node* nodesOutputHead = nodesOutputTail;
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(threads[i], NULL); // Wait for thread to finish
         //printListTrad(args[i].combineOutputListTail);
-        freeList(args[i].combineOutputListTail);
-        printf("In main: list from thread %d freed\n", i);
+        nodesOutputHead->next=args[i].combineOutputListTail->next;
+        nodesOutputHead->next->prev = nodesOutputHead;
+        while (nodesOutputHead->next != NULL)
+        {
+            nodesOutputHead = nodesOutputHead->next;
+        }
+        //freeList(args[i].combineOutputListTail);
+        //printf("In main: list from thread %d freed\n", i);
     }
+    printList(nodesOutputTail);
+    printListFromHead(nodesOutputHead);
+
+    printf("In main: final result\n");
+
+    printList(reduce(shuffle(nodesOutputTail)));
 
     // Aggregate result
-    printf("In main: All threads have terminated.\n");
+    printf("In main: All threads have terminated.\n\n");
 
     // (Optional) Cleanup memory here...
 

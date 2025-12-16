@@ -62,7 +62,7 @@ void printList(Node* tail) {
         temp = tail->next;
         printf("Index: %d\tContentKeyString: %s\t", tail->index,(const char*)((KeyVal *)tail->contentPointer)->key);
         printf("ContentValueInt: %d\tContentPointer: %p\n", *(int*)((KeyVal *)tail->contentPointer)->val, tail->contentPointer);
-        fflush(stdout);
+        fflush(stdout);//0xe57350
         tail = temp;
     }
 }
