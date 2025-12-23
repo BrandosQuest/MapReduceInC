@@ -45,6 +45,16 @@ Node* getNextNode(Node* node) {
     }
     return node->next;
 }
+void resetIndexes(Node* tail) {
+    Node* temp;
+    int i=0;
+    while (tail != NULL) {
+        temp = tail->next;
+        tail->index=i;
+        i++;
+        tail = temp;
+    }
+}
 void freeList(Node* tail) {
     Node* temp;
     while (tail != NULL) {

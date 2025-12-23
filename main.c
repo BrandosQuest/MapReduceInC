@@ -37,64 +37,60 @@ int areTheKeysEqual(KeyVal* k1, KeyVal* k2) {
 
 //a shuffle func that takes the key value list and for each key that is equal it creates an array or list of the values
 Node* shuffle(Node* inputTail) {
-    Node* outputTail = createList();
-    Node* outputTailRef = outputTail;
-    Node* outputHead = outputTail;
+    // Node* outputTail = createList();
+    // Node* outputTailRef = outputTail;
+    Node* outputHead = inputTail;
+    Node* inputTailRef = inputTail;
 
-    /*{Node* temp;
-    inputTail = inputTail->next;
-    int j=0;
+    //cycle through the key values from the input from the map
+    Node* temp;
+    int wordsFound=0;
     while (inputTail != NULL) {
         temp = inputTail->next;
 
-
-        //do stuff
-        printf("j: %d\n", j++);
         int founded=0;
-        int i=0;
-        outputTailTemp=outputTail;
 
-        Node* temp2;
-        outputTailTemp = outputTailTemp->next;
-        while (outputTailTemp != NULL)
-        {
-            temp2 = outputTailTemp->next;
-            //do stuff
+        //cicle trough the key values containing the array of the values, first loop it is empty and skipped
+        Node* tempTail=inputTailRef;
+        Node* temp3;
+        inputTail->next=NULL;
+        while (tempTail != NULL) {
+            temp3 = tempTail->next;
+
+            if (areTheKeysEqual(inputTail->contentPointer, tempTail->contentPointer))//the 2 key strings are equal
             {
-            printf("i: %d\n", i++);
-            if (areTheKeysEqual(inputTail->contentPointer, outputTailTemp->contentPointer))
-            {
-                //do stuff
-                //add to the outputlist the value from the imput list
-                ((KeyVal*)outputTailTemp->contentPointer)->val = addNode(
-                    ((KeyVal*)outputTailTemp->contentPointer)->val, ((KeyVal*)inputTail->contentPointer)->val);
                 founded=1;
-                printf("Match found for %s\n", (const char*)((KeyVal*)inputTail->contentPointer)->key);
+                wordsFound++;
+                //add the value to the array of values using the same list
+                ((KeyVal*)tempTail->contentPointer)->val = addNode(((KeyVal*)tempTail->contentPointer)->val,
+                                                                     ((KeyVal*)inputTail->contentPointer)->val);
                 break;
             }
-            printf("outputTailTemp pointer: %p\n", outputTailTemp);
-            //if the keys are equal than add the value to the valueList on the specific outputlist value
-            //else if there is no match create a new node on the outputlist with the same key and a list on the value containing the specific value
-            }
-            outputTailTemp = temp2;
+
+            tempTail = temp3;
         }
+
         if (!founded)
         {
-            printf("Match not founded for %s\n", (const char*)((KeyVal*)inputTail->contentPointer)->key);
-            KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));
-            kv->key = ((KeyVal*)inputTail->contentPointer)->key;
-            Node* valueListTail = createList();
-            Node* valueListHead = valueListTail;
-            valueListHead=addNode(valueListHead, ((KeyVal*)inputTail->contentPointer)->val);
-            kv->val = valueListHead;
-            printf("outputList content pointer: %p\n", kv);
-            outputHead = addNode(outputHead, kv);
+            KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));//this represents the array to be created
+            if (kv!=NULL)//put things in kv
+            {
+                kv->key = ((KeyVal*)inputTail->contentPointer)->key;
+                Node* valueListTail = createList();//creating the aray of values
+                Node* valueListHead = valueListTail;//creating the aray of values
+                valueListHead=addNode(valueListHead, ((KeyVal*)inputTail->contentPointer)->val);
+                kv->val = valueListHead;
+            }
+            outputHead=addNode(outputHead, kv);
+            if (outputHead == NULL) free(kv);
+            outputHead->next=NULL;
             //remember to find a way to free this from the head
         }
-
-
         inputTail = temp;
-    }}*/
+    }
+    /*Node* outputTail = createList();
+    Node* outputTailRef = outputTail;
+    Node* outputHead = outputTail;
 
     //cycle through the key values from the input from the map
     Node* temp;
@@ -118,19 +114,12 @@ Node* shuffle(Node* inputTail) {
                 //add the value to the array of values
                 ((KeyVal*)outputTail->contentPointer)->val = addNode(((KeyVal*)outputTail->contentPointer)->val,
                                                                      ((KeyVal*)inputTail->contentPointer)->val);
-                //if (((KeyVal*)outputTail->contentPointer)->val == NULL) free(j);
-                /*int* j=malloc(sizeof(int));
-                if (j!=NULL)*j = 1;
-
-                ((KeyVal*)outputTail->contentPointer)->val = addNode(((KeyVal*)outputTail->contentPointer)->val, j);
-                if (((KeyVal*)outputTail->contentPointer)->val == NULL) free(j);*/
                 break;
             }
             outputTail = temp2;
         }
         if (!founded)
         {
-            //int* j=malloc(sizeof(int));//this represents the array to be created
             KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));//this represents the array to be created
             if (kv!=NULL)//put things in kv
             {
@@ -139,31 +128,14 @@ Node* shuffle(Node* inputTail) {
                 Node* valueListHead = valueListTail;//creating the aray of values
                 valueListHead=addNode(valueListHead, ((KeyVal*)inputTail->contentPointer)->val);
                 kv->val = valueListHead;
-                //printf("outputList content pointer: %p\n", kv);
             }
             outputHead=addNode(outputHead, kv);
             if (outputHead == NULL) free(kv);
-            //printf("Match not founded for %s\t created list of values\n", (const char*)((KeyVal*)inputTail->contentPointer)->key);
             //remember to find a way to free this from the head
         }
-
         inputTail = temp;
-    }
-
-
-
-
-    /*Node* temp3;
-    outputTail = outputTailRef;
-    outputTail= outputTail->next;
-    while (outputTail != NULL && outputTail->contentPointer != 0) {
-        temp3 = outputTail->next;
-        printf("List of values\n");
-        printListFromHead(((KeyVal*)outputTail->contentPointer)->val);
-        outputTail = temp3;
     }*/
-
-    return outputTailRef;
+    return inputTailRef;
 }
 
 Node* combine(Node* inputTail) {
@@ -220,14 +192,14 @@ void threadFunc(void* arguments) {
         if (i+1==args->numNodesToEvaluate)
         {
             printf("%d\n", i);
-            args->startNode->next=NULL;
+            args->startNode->next=NULL;//TODO free all of the rest of the list
             break;
         }
         args->startNode=getNextNode(args->startNode);
     }
 
     args->combineOutputListTail=combine(shuffle(tailReference));
-    free(encounteredOnce);
+    //free(encounteredOnce);
     //old way of doing thinks it worked!
     /*Node* mapOutputListTail = createList();
     Node* mapOutputListHead = mapOutputListTail;
@@ -380,7 +352,7 @@ int main() {
 
     printf("In main: final result\n");
 
-    printList(reduce(shuffle(nodesOutputTail)));
+    printList(reduce(shuffle(nodesOutputTail->next)));
 
     // Aggregate result
     printf("In main: All threads have terminated.\n\n");
