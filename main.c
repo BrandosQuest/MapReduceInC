@@ -10,7 +10,7 @@ struct KeyVal {
 #include <wctype.h>
 //#include "ReadFileReturnArrayOfWords.c"
 
-#define NUM_THREADS 2
+#define NUM_THREADS 1
 
 // 2. The "Envelope" struct to pass arguments to threads
 typedef struct {
@@ -96,9 +96,9 @@ Node* shuffle(Node* inputTail) {
         inputTail = temp;
     }}*/
 
-    //cicle trough the key values from the input from the map
+    //cycle through the key values from the input from the map
     Node* temp;
-    inputTail = inputTail->next;
+    //inputTail = inputTail->next;
     while (inputTail != NULL) {
         temp = inputTail->next;
 
@@ -198,11 +198,38 @@ Node* combine(Node* inputTail) {
 
 // 3. The Thread Function (The "Map" Phase)
 // This logic runs on each CPU thread independently
-void* threadFunc(void* arguments) {
-    ThreadArgs* args = (ThreadArgs*) arguments;
-    printf("In thread: Thread number %d is working!\n", args->thread_id);
+void threadFunc(void* arguments) {
+    ThreadArgs* args = (ThreadArgs*) arguments;// I cast the arguments to the ThreadArgs type
+    //printf("In thread: Thread number %d is working!\n", args->thread_id);
 
-    Node* mapOutputListTail = createList();
+    //int encounteredOnce=1;
+    int* encounteredOnce=malloc(sizeof(int));
+    *encounteredOnce = 1;
+    Node* tailReference=args->startNode;
+    //Node* tailReference=createList();
+    //tailReference->next=args->startNode;
+
+    for (int i = 0; i < args->numNodesToEvaluate; i++)
+    {
+        KeyVal* kv = (KeyVal*) calloc(1, sizeof(KeyVal));//create a kv portion of memory
+        kv->key=args->startNode->contentPointer; //the key is the word encountered
+        kv->val=encounteredOnce;// the value is 1, "found"
+        args->startNode->contentPointer=kv;
+        //mapOutputListHead = addNode(mapOutputListHead, kv);
+        //if it is the last loop the next node must be null
+        if (i+1==args->numNodesToEvaluate)
+        {
+            printf("%d\n", i);
+            args->startNode->next=NULL;
+            break;
+        }
+        args->startNode=getNextNode(args->startNode);
+    }
+
+    args->combineOutputListTail=combine(shuffle(tailReference));
+    free(encounteredOnce);
+    //old way of doing thinks it worked!
+    /*Node* mapOutputListTail = createList();
     Node* mapOutputListHead = mapOutputListTail;
     int encounteredOnce=1;
 
@@ -216,7 +243,7 @@ void* threadFunc(void* arguments) {
         mapOutputListHead = addNode(mapOutputListHead, kv);
     }
 
-    args->combineOutputListTail=combine(shuffle(mapOutputListTail));
+    args->combineOutputListTail=combine(shuffle(mapOutputListTail));*/
     /*printList(mapOutputListTail);
     printf("mapOutputListTail \t%p\n", mapOutputListTail);
     printf("args->combineOutputListTail \t%p\n", args->combineOutputListTail);*/
@@ -275,8 +302,9 @@ int main() {
     Node* head = tail;
     FILE *f = fopen("input.txt", "r");
 
+    //The file is read, and split into words
     char buf[256];
-    while( fscanf(f, "%s", buf) != EOF )
+    while( fscanf(f, "%255s", buf) != EOF )
     {
         for (int i=0; buf[i] != 0; i++)
         {
@@ -286,56 +314,52 @@ int main() {
             }
         }
         if (buf[0]!=0) head = addNode(head, strdup(buf));
-        //printf("%s\n", buf);
-        //fflush(stdout);
     }
-    //printListTrad(tail);
 
     // --- STEP 1: PREPARE THREADS ---
     pthread_t threads[NUM_THREADS];
-    ThreadArgs args[NUM_THREADS]; // An array of "envelopes"
-    int segmentSize = (head->index+1) / NUM_THREADS;
+    ThreadArgs args[NUM_THREADS]; // An array of "envelopes"(used for passing things to the threads)
+    int segmentSize = (head->index+1) / NUM_THREADS;//the theoretical size of a portion of list passed to the thread
     int reminder=(head->index+1) % NUM_THREADS;
-    Node* segmentStart = tail->next;
+    Node* segmentStart = tail->next;//the  tail's always null
 
     // --- STEP 2: SPLIT THE LIST & LAUNCH ---
     // for each thread
     for (int i = 0; i < NUM_THREADS; i++) {
         args[i].thread_id = i;//initialize the thread id
-        args[i].startNode = segmentStart;//initialize the first node of the portion of the list to analize
+        args[i].startNode = segmentStart;//initialize the first node of the portion of the list to analyze
 
-        // Find the end node or the num of nodes to evaluete for this segment
+        // Find the end node or the num of nodes to evaluate for this segment
         // We traverse 'segment_size' steps forward
         Node* segmentEnd = segmentStart;
         int j;
         for (j = 0; j < segmentSize && segmentEnd != NULL; j++) {
             segmentEnd = segmentEnd->next;
-            if (j+1 == segmentSize)
+            if (j+1 == segmentSize)//if this is the last loop
             {
-                if (reminder>0)
+                if (reminder>0)//if we have spare reminders to assign
                 {
-                    segmentEnd = segmentEnd->next;
-                    reminder--;
+                    segmentEnd = segmentEnd->next; //assign a reminder
+                    reminder--; //remove a reminder form the reminders
                     j++;
                 }
             }
         }
-        printf("In main: thread %d has %d nodes assigned to it\n", i, j);
-        //if (segmentEnd == NULL) break;
+        printf("In main: thread %d has %d nodes assigned to it\n", i, j);//print info about thread
 
-        args[i].endNode = segmentEnd;
-        args[i].numNodesToEvaluate = j;
+        args[i].endNode = segmentEnd;//assign the endNode
+        args[i].numNodesToEvaluate = j;//assign the number of nodes
+        //TODO to decide if they are both necessary
 
         // Launch the thread!
         // We pass the address of the specific struct for this thread (&args[i])
         pthread_create(&threads[i], NULL, (void*)threadFunc, (void*)&args[i]);
 
         // Move the start pointer for the NEXT iteration
-        //if (segmentEnd->next == NULL) break;
-        //segmentStart = segmentEnd->next;
         segmentStart = segmentEnd;
     }
     printf("In main: All threads are created.\n");
+
     // --- STEP 3: REDUCE PHASE (Join and Aggregate) ---
     Node* nodesOutputTail = createList();
     Node* nodesOutputHead = nodesOutputTail;
@@ -368,40 +392,3 @@ int main() {
     printf("Elapsed: %f seconds\n", (double)(toc - tic) / CLOCKS_PER_SEC);
     return 0;
 }
-/*#define NUM_THREADS 5
-
-void* perform_work(void* arguments){
-    int index = *((int*)arguments);
-    int sleep_time = 1 + rand() % NUM_THREADS;
-    printf("Thread %d: Started.\n", index);
-    printf("Thread %d: Will be sleeping for %d seconds.\n", index, sleep_time);
-    sleep(sleep_time);
-    printf("Thread %d: Ended.\n", index);
-    return NULL;
-}
-
-int main(void) {
-    pthread_t threads[NUM_THREADS];
-    int thread_args[NUM_THREADS];
-    int result_code;
-
-    //create all threads one by one
-    for (int i = 0; i < NUM_THREADS; i++) {
-        printf("In main: Creating thread %d.\n", i);
-        thread_args[i] = i;
-        result_code = pthread_create(&threads[i], NULL, perform_work, &thread_args[i]);
-        assert(!result_code);
-    }
-
-    printf("In main: All threads are created.\n");
-
-    // wait for each thread to complete
-    for (int i = 0; i < NUM_THREADS; i++) {
-        result_code = pthread_join(threads[i], NULL);
-        assert(!result_code);
-        printf("In main: Thread %d has ended.\n", i);
-    }
-
-    printf("Main program has ended.\n");
-    return 0;
-}*/

@@ -17,3 +17,5 @@ I need to implement:
 -a list of KeyValue so that i can iterate them
 -a shuffle func that takes the key value list and for each key that is equal it creates an array or list of the values
 -
+
+Now to do some optimization with some ting othen than +++a fasb  asb
