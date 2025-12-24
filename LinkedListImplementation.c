@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct Node Node;
 
@@ -62,6 +61,16 @@ void freeList(Node* tail) {
         free(tail->contentPointer);
         free(tail);
         tail = temp;
+    }
+}
+void freeListFromHead(Node* head) {
+    printf("LIST!\n");
+    Node* temp;
+    while (head != NULL && head->contentPointer != 0) {
+        temp = head->prev;
+        free(head->contentPointer);
+        free(head);
+        head = temp;
     }
 }
 void printList(Node* tail) {
