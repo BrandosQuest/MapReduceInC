@@ -172,7 +172,7 @@ int main() {
 
     Node* tail = createList();
     Node* head = tail;
-    FILE *f = fopen("inputLong.txt", "r");
+    FILE *f = fopen("input.txt", "r");
 
     //The file is read, and split into words
     char buf[256];
@@ -255,7 +255,16 @@ int main() {
     printf("In main: final result\n");
 
     Node* finalResultsList=reduce(shuffle(nodesOutputTail));
-    printListRealTail(finalResultsList);
+
+    /*printf("LIST!\n");
+    Node* temp;
+    while (finalResultsList != NULL && finalResultsList->contentPointer != 0) {
+        temp = finalResultsList->next;
+        printf("ContentKeyString: %20s\tContentValueInt: %d\n",
+               (const char*)((KeyVal*)finalResultsList->contentPointer)->key,
+               *(int*)((KeyVal*)finalResultsList->contentPointer)->val);
+        finalResultsList = temp;
+    }*/
 
     // Aggregate result
     printf("In main: All threads have terminated.\n\n");
