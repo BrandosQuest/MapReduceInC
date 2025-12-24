@@ -76,6 +76,17 @@ void printList(Node* tail) {
         tail = temp;
     }
 }
+void printListRealTail(Node* tail) {
+    printf("LIST!\n");
+    Node* temp;
+    while (tail != NULL && tail->contentPointer != 0) {
+        temp = tail->next;
+        printf("Index: %d\tContentKeyString: %s\t", tail->index,(const char*)((KeyVal *)tail->contentPointer)->key);
+        printf("ContentValueInt: %d\tContentPointer: %p\n", *(int*)((KeyVal *)tail->contentPointer)->val, tail->contentPointer);
+        fflush(stdout);//0xe57350
+        tail = temp;
+    }
+}
 void printListFromHead(Node* head) {
     printf("LIST!\n");
     Node* temp;
